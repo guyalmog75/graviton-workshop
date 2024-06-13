@@ -1,3 +1,4 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0
 from flask import Flask, render_template, request, jsonify
 import short_url
 from short_url import create_short_url, retrive_from_dynamo

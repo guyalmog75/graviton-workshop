@@ -1,4 +1,4 @@
-
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand, GetCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { CloudFormationClient, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';

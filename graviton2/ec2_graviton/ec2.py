@@ -1,5 +1,4 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0
-
 import aws_cdk as cdk
 from constructs import Construct
 import aws_cdk.aws_dynamodb as dynamodb
