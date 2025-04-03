@@ -20,14 +20,9 @@ class CdkEC2Stack(cdk.Stack):
         ec2_gv3_type = "c7g.xlarge"
         ec2_x86_type = "c5.xlarge"
         
-        # Create a placement group with the CLUSTER strategy, we want all instances to be in same placement group for performance reasons
-        #
-        #pg = ec2.CfnPlacementGroup(self, 'ec2_module_PlacementGroup', strategy='cluster')
-        
         amzn_linux_arm= ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.ARM_64)
         amzn_linux_x86_64= ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.X86_64)
-        key_name= "gravitonKey"
-        
+
         ec2_security_group = ec2.SecurityGroup(
             self, "Ec2SecurityGroup",
             vpc=vpc,
@@ -83,55 +78,25 @@ class CdkEC2Stack(cdk.Stack):
         )
         
         user_data = self.get_user_data("ec2_module_test_client")
+        
+        # Import the key pair by name
+        key_pair = ec2.KeyPair.from_key_pair_name(self, "ImportedKeyPair", "gravitonKey")
+
         client1 = ec2.Instance(self, "Client-1",
-                            instance_type=ec2.InstanceType(
-                                instance_type_identifier=ec2_test_client),
-                            instance_name="EC2_Module_Test_Client1_for_SUT1",
-                            machine_image=amzn_linux_x86_64,
-                            vpc=vpc,
-                            key_name=key_name,
-                            security_group=ec2_security_group,
-                            vpc_subnets=ec2.SubnetSelection(
-                                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-                            user_data=ec2.UserData.custom(user_data),
-                            role=client_role # Attach the IAM role to the client instance
-                            )
-        # add to placement group with the CLUSTER strategy                            
-        #client1.instance.add_property_override('PlacementGroupName', pg.ref)
+                      instance_type=ec2.InstanceType(
+                          instance_type_identifier=ec2_test_client),
+                      instance_name="EC2_Module_Test_Client1_for_SUT1",
+                      machine_image=amzn_linux_x86_64,
+                      vpc=vpc,
+                      key_pair=key_pair,  
+                      security_group=ec2_security_group,
+                      vpc_subnets=ec2.SubnetSelection(
+                          subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+                      user_data=ec2.UserData.custom(user_data),
+                      role=client_role
+                      )
         
-        # client2 = ec2.Instance(self, "Client-2",
-        #                     instance_type=ec2.InstanceType(
-        #                         instance_type_identifier=ec2_test_client),
-        #                     instance_name="EC2_Module_Test_Client2_for_SUT2",
-        #                     machine_image=amzn_linux_x86_64,
-        #                     vpc=vpc,
-        #                     key_name=key_name,
-        #                     security_group=ec2_security_group,
-        #                     vpc_subnets=ec2.SubnetSelection(
-        #                         subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-        #                     user_data=ec2.UserData.custom(user_data),
-        #                     role=client_role # Attach the IAM role to the client instance
-        #                     )
-        # # add to placement group with the CLUSTER strategy                            
-        #client2.instance.add_property_override('PlacementGroupName', pg.ref)
-        
-        # client3 = ec2.Instance(self, "Client-3",
-        #                     instance_type=ec2.InstanceType(
-        #                         instance_type_identifier=ec2_test_client),
-        #                     instance_name="EC2_Module_Test_Client3_for_SUT3",
-        #                     machine_image=amzn_linux_x86_64,
-        #                     vpc=vpc,
-        #                     key_name=key_name,
-        #                     security_group=ec2_security_group,
-        #                     vpc_subnets=ec2.SubnetSelection(
-        #                         subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-        #                     user_data=ec2.UserData.custom(user_data),
-        #                     role=client_role # Attach the IAM role to the client instance
-        #                     )
-                            
-        # add to placement group with the CLUSTER strategy                            
-        #client3.instance.add_property_override('PlacementGroupName', pg.ref)
-        
+
         user_data = self.get_user_data("ec2_module_sut_1")
         sut_1 = ec2.Instance(self, "SUT1",
                             instance_type=ec2.InstanceType(
@@ -139,7 +104,7 @@ class CdkEC2Stack(cdk.Stack):
                             instance_name="EC2_Module_SUT1_x86",
                             machine_image=amzn_linux_x86_64,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
@@ -147,9 +112,7 @@ class CdkEC2Stack(cdk.Stack):
                             role=sut_role  # Attach the IAM role to the SUT instance
                             )
                             
-        # add to placement group with the CLUSTER strategy                            
-        #sut_1.instance.add_property_override('PlacementGroupName', pg.ref)
- 
+
         user_data = self.get_user_data("ec2_module_sut_2")
         sut_2 = ec2.Instance(self, "SUT2",
                             instance_type=ec2.InstanceType(
@@ -157,7 +120,7 @@ class CdkEC2Stack(cdk.Stack):
                             instance_name="EC2_Module_SUT2_GV2",
                             machine_image=amzn_linux_arm,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
@@ -165,9 +128,7 @@ class CdkEC2Stack(cdk.Stack):
                             role=sut_role  # Attach the IAM role to the SUT instance
                             )
         
-        # add to placement group with the CLUSTER strategy                            
-        #sut_2.instance.add_property_override('PlacementGroupName', pg.ref)                    
-                            
+
         user_data = self.get_user_data("ec2_module_sut_3")
         sut_3 = ec2.Instance(self, "SUT3",
                             instance_type=ec2.InstanceType(
@@ -175,7 +136,7 @@ class CdkEC2Stack(cdk.Stack):
                             instance_name="EC2_Module_SUT3_GV3",
                             machine_image=amzn_linux_arm,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
@@ -183,12 +144,8 @@ class CdkEC2Stack(cdk.Stack):
                             role=sut_role  # Attach the IAM role to the SUT instance
                             )
 
-        # add to placement group with the CLUSTER strategy                            
-        #sut_3.instance.add_property_override('PlacementGroupName', pg.ref)
 
         cdk.CfnOutput( self, "Client1_IP", value = client1.instance_private_ip)
-        #cdk.CfnOutput( self, "Client2_IP", value = client2.instance_private_ip) 
-        #cdk.CfnOutput( self, "Client3_IP", value = client3.instance_private_ip) 
         cdk.CfnOutput( self, "SUT1_IP", value = sut_1.instance_private_ip) 
         cdk.CfnOutput( self, "SUT2_IP", value = sut_2.instance_private_ip)
         cdk.CfnOutput( self, "SUT3_IP", value = sut_3.instance_private_ip)

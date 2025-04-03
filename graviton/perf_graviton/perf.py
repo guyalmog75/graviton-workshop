@@ -17,8 +17,7 @@ class CdkPerfStack(cdk.Stack):
         ec2_type_client = "m5.large"
         amzn_linux= ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.ARM_64)
         amzn_linux_x86_64= ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.X86_64)
-        key_name= "gravitonKey"
- 
+       
         # Create a placement group with the CLUSTER strategy
         #pg = ec2.PlacementGroup(self, "ec2_module_PlacementGroup",strategy=ec2.PlacementGroupStrategy.CLUSTER)
         pg = ec2.CfnPlacementGroup(self, 'ec2_module_PlacementGroup', strategy='cluster')
@@ -37,13 +36,17 @@ class CdkPerfStack(cdk.Stack):
         )
         
         user_data = self.get_user_data("client")
+        
+        # Import the key pair by name
+        key_pair = ec2.KeyPair.from_key_pair_name(self, "ImportedKeyPair", "gravitonKey")
+
         client = ec2.Instance(self, "Client",
                             instance_type=ec2.InstanceType(
                                 instance_type_identifier=ec2_type_client),
                             instance_name="Perf_Client",
                             machine_image=amzn_linux_x86_64,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
@@ -58,7 +61,7 @@ class CdkPerfStack(cdk.Stack):
                             instance_name="Perf_SUT1",
                             machine_image=amzn_linux,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
@@ -73,7 +76,7 @@ class CdkPerfStack(cdk.Stack):
                             instance_name="Perf_SUT2",
                             machine_image=amzn_linux,
                             vpc=vpc,
-                            key_name=key_name,
+                            key_pair=key_pair,
                             security_group=ec2_security_group,
                             vpc_subnets=ec2.SubnetSelection(
                                 subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
